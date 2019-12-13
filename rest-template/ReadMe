@@ -1,0 +1,31 @@
+*********************************************************************************************************************
+
+public Cibil postCibil(Cibil cibil) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("test", "value");
+		HttpEntity<Cibil> request = new HttpEntity<Cibil>(cibil, headers);
+		ResponseEntity<Cibil> response = restTemplate.exchange(cibilurl, HttpMethod.POST, request, Cibil.class);
+		Cibil cResponse = response.getBody();
+		return cResponse;
+	}
+
+*********************************************************************************************************************
+
+
+@Bean
+	public RestTemplate restTemplate() {
+		RestTemplate restTemplate = new RestTemplate();
+		restTemplate.setErrorHandler(new RestTemplateErrorHandler());
+		HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+		clientHttpRequestFactory.setConnectTimeout(5 * 1000);
+		restTemplate.setRequestFactory(clientHttpRequestFactory);
+		return restTemplate;
+	}
+
+*********************************************************************************************************************
+
+@PostMapping("/aadher/cibil")
+	public ResponseEntity createCibil(@RequestBody Cibil obj) {
+		return ResponseEntity.status(201).body(service.postCibil(obj));
+	}
+
