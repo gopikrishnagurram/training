@@ -104,3 +104,32 @@ public class TestRunner implements CommandLineRunner {
 
 }
 
+**********************************************************************************
+
+public List<Employee> findByName(String name);
+	
+	public List<Employee> findByNameAndAge(String name, int age);
+	
+	public List<Employee> findByNameOrAge(String name, int age);
+	
+	public List<Employee> findByAgeBetween(int start, int end);
+	
+	public List<Employee> findByName(String name, Pageable page);
+	
+	@Query(value="select e from Employee e where e.name=:name", nativeQuery=false)
+	public List<Employee> getByName(@Param("name") String name);
+	
+	@Query(value="select e from Employee e where e.name=:name and e.age=:age", nativeQuery=false)
+	public List<Employee> getByNameAndAge(@Param("name") String name,@Param("age") Integer age);
+	
+	@Query(value="select new Employee(e.name,e.age) from Employee e where e.name=:name and e.age=:age", nativeQuery=false)
+	public List<Employee> getByNameAndAge1(@Param("name") String name,@Param("age") Integer age);
+
+	@Query(value="select * from employee e where e.name=:name", nativeQuery=true)
+	public List<Employee> getByNameUsingNative(@Param("name") String name);
+	
+	@Query(value="select name,age from employee e where e.name=:name", nativeQuery=true)
+	public Map getByNameUsingNative2(@Param("name") String name);
+
+*************************************************
+
