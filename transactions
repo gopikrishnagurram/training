@@ -1,0 +1,187 @@
+@SpringBootApplication
+@EnableSwagger2
+@EnableTransactionManagement
+public class SpringTransactionsApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SpringTransactionsApplication.class, args);
+	}
+
+}
+
+*********************************************************
+
+@Service
+public class BusService {
+
+	@Autowired
+	BusRepository busRepository;
+
+	@Transactional(noRollbackFor= {NullPointerException.class}, rollbackFor= {ArithmeticException.class})
+	public Bus saveBus(Bus bus) {
+		Bus rBus = busRepository.save(bus);
+		System.out.println(rBus.getId());
+		//String name=null;
+		//name.length();
+		System.out.println("End of method execution");
+		return rBus;
+	}
+
+	public Bus getBus(int id) {
+		Optional<Bus> opBus = busRepository.findById(id);
+		if (opBus.isPresent()) {
+			return opBus.get();
+		}
+		return null;
+	}
+
+@Transactional
+	public Bus updateBus(int id, Bus bus) {
+		bus.setId(id);
+		Bus rBus = busRepository.save(bus);
+		try {
+			Thread.sleep(15 * 1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("id : " + rBus.getId());
+		return rBus;
+	}
+
+	/*
+	 * public Bus updateBus(int id, Bus bus, List<String> modified) { while (true) {
+	 * try { bus.setId(id); System.out.println("Updatable bus : " +
+	 * bus.getNumOfSeats()+", " + bus.getRegNo()); Bus rBus =
+	 * busRepository.save(bus); try { Thread.sleep(12 * 1000); } catch
+	 * (InterruptedException e) { e.printStackTrace(); } System.out.println("id : "
+	 * + rBus.getId()); return rBus; } catch
+	 * (ObjectOptimisticLockingFailureException e) { Bus mBus =
+	 * busRepository.findById(id).get(); List<String> completeModifiedFields =
+	 * bus.compare(mBus); bus = mBus.fixVersion(bus, completeModifiedFields,
+	 * modified); System.out.println("Version mismatch, retrying again"); } } }
+	 */
+
+	public void deleteBus(int id) {
+		busRepository.deleteById(id);
+		Optional<Bus> r = busRepository.findById(id);
+		if (r.isPresent()) {
+			System.out.println("But not deleted yet");
+		} else {
+			System.out.println("Bus deleted successfully!");
+		}
+	}
+
+}
+
+**************************
+package com.unimoni;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Version;
+
+@Entity
+public class Bus {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int id;
+
+	private String regNo;
+
+	private int numOfSeats;
+	
+	@Version
+	private int version;
+
+
+	public Bus(String regNo, int numOfSeats) {
+		super();
+		this.regNo = regNo;
+		this.numOfSeats = numOfSeats;
+	}
+
+	public Bus() {
+
+	}
+
+	public String getRegNo() {
+		return regNo;
+	}
+
+	public void setRegNo(String regNo) {
+		this.regNo = regNo;
+	}
+
+	public int getNumOfSeats() {
+		return numOfSeats;
+	}
+
+	public void setNumOfSeats(int numOfSeats) {
+		this.numOfSeats = numOfSeats;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public int getVersion() {
+		return version;
+	}
+
+	public void setVersion(int version) {
+		this.version = version;
+	}
+
+	/*public List<String> compare(Bus b) {
+		List<String> list = new ArrayList<String>();
+		boolean equal = (b.getNumOfSeats() != this.getNumOfSeats()) ? true : false;
+		addFiled("numOfSeats", equal, list);
+		equal = (!b.getRegNo().equals(this.getRegNo())) ? true : false;
+		addFiled("regNo", equal, list);
+		return list;
+	}
+
+	private List<String> addFiled(String fieldName, boolean equal, List<String> fields) {
+		if (equal) {
+			fields.add(fieldName);
+			System.out.println(fieldName +  " Field changed");
+		}
+		return fields;
+	}
+
+	public Bus fixVersion(Bus b, List<String> fields, List<String> modifiedFields) {
+		for (String field : fields) {
+			if (field.equals("numOfSeats") && modifiedFields.contains("numOfSeats")) {
+				b.setNumOfSeats(this.getNumOfSeats());
+			}
+			if (field.equals("regNo") && modifiedFields.contains("regNo")) {
+				b.setRegNo(this.getRegNo());
+			}
+		}
+		b.setVersion(this.getVersion());
+		return b;
+	}*/
+}
+*********************************************
+
+public interface BusRepository extends JpaRepository<Bus, Integer> {
+
+}
+*********************************************
+
+spring.datasource.url=jdbc:mysql://localhost:3306/test
+spring.datasource.username=root
+spring.datasource.password=123456
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+spring.jpa.generate-ddl=true
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQL5InnoDBDialect
