@@ -133,3 +133,5 @@ public List<Employee> findByName(String name);
 
 *************************************************
 
+@Procedure(procedureName = "MOVE_TO_HISTORY")
+  boolean movePersonToHistory(@Param("person_id_in") int personId);
