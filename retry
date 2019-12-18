@@ -1,0 +1,82 @@
+	<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.retry</groupId>
+			<artifactId>spring-retry</artifactId>
+		</dependency>
+
+
+
+
+@SpringBootApplication
+@EnableRetry
+public class SpringRetryApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SpringRetryApplication.class, args);
+	}
+
+}
+
+**********************************************************************************************
+
+
+package com.unimoni;
+
+import java.util.Random;
+
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.stereotype.Service;
+
+@Service
+public class EmployeeService {
+
+	private int count = 0;
+
+	@Retryable(maxAttempts = 3, backoff = @Backoff(delay = 5 * 1000), value=NullPointerException.class)
+	public Employee getEmployee(Integer id) {
+		System.out.println("Trying for " + (++count) + " time");
+		Random random = new Random();
+		int number = random.nextInt();
+		if (id % 2 == 0) {
+			throw new NullPointerException("NullPointerException");
+		}
+		return new Employee(1, "Coming from main");
+	}
+
+	@Recover
+	public Employee recover(Exception e, Integer id) {
+		System.out.println("Inside the recover method");
+		count = 0;
+		e.printStackTrace();
+		return new Employee(1, "Coming from recovery");
+	}
+
+}
+
+*********************************************************************************************************************************************
+
+package com.unimoni;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class EmployeeController {
+
+	@Autowired
+	EmployeeService employeeService;
+
+	@GetMapping("/employees/{id}")
+	public ResponseEntity getEmployee(@PathVariable("id") Integer id) {
+		return ResponseEntity.status(200).body(employeeService.getEmployee(id));
+	}
+}
+
