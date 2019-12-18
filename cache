@@ -1,0 +1,119 @@
+package com.unimoni.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+
+import com.unimoni.annotation.CacheUserData;
+import com.unimoni.entity.User;
+import com.unimoni.repository.UserRepository;
+
+@Service
+public class UserService {
+
+	@Autowired
+	UserRepository userRepository;
+
+	public User createUser(User user) {
+		return userRepository.save(user);
+	}
+
+	
+	@Cacheable(value="users", condition="#result!=null")
+	public Optional<User> getUser(Integer id) {
+		return userRepository.findById(id);
+	}
+
+	public User getUserByEmail(String email) {
+		return userRepository.findByEmail(email);
+	}
+
+	//email-name
+	@CacheUserData
+	public User getUserByEmailAndName(String email, String name) {
+		System.out.println("Inside the getUserByEmailAndName");
+		return userRepository.findByEmailAndName(email, name);
+	}
+
+	public List<User> getUser2() {
+		return userRepository.findAll();
+	}
+
+	@CachePut(value="users", key="#user.id")
+	public User updateUser(User user) {
+		return userRepository.save(user);
+	}
+
+	@CacheEvict(value="users")
+	public void deleteUser(Integer id) {
+		userRepository.deleteById(id);
+	}
+
+}
+********************************************************************************
+
+Couchbase configuration: 
+************************
+
+package com.unimoni;
+
+import org.springframework.cache.CacheManager;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.CouchbaseCluster;
+import com.couchbase.client.spring.cache.CacheBuilder;
+import com.couchbase.client.spring.cache.CouchbaseCacheManager;
+
+@Configuration
+public class CouchbaseConfiguration {
+	@Bean
+	public Cluster cluster() {
+		// connect to the couchbase-server running on your local machine. Administrator
+		return CouchbaseCluster.create().authenticate("Administrator", "123456");
+	}
+
+	@Bean(destroyMethod = "close")
+	public Bucket bucket() {
+		// connect to the bucket named 'default' (which must exist on your Couchbase
+		// server)
+		// every cache related element will use this bucket
+		return cluster().openBucket("game");
+	}
+
+	@Bean
+	public CacheManager cacheManager() {
+		CacheBuilder cacheBuilder = CacheBuilder.newInstance(bucket()).withExpiration(140);
+		return new CouchbaseCacheManager(cacheBuilder);
+	}
+
+}
+*******************************************************************************************************
+   
+Couchbase maven config:
+*************************
+  <dependency>
+			<groupId>com.couchbase.client</groupId>
+			<artifactId>java-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.couchbase.client</groupId>
+			<artifactId>couchbase-spring-cache</artifactId>
+		</dependency> 
+*****************************************************************************
+
+@Autowired
+CacheManager cacheManager;
+
+@GetMapping("/users/cache/{name}")
+	public ResponseEntity getCache(@PathVariable("name") String name) {
+		Cache cache = cacheManager.getCache(name);
+		return ResponseEntity.status(200).body(cache);
+	}
