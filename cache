@@ -117,3 +117,23 @@ CacheManager cacheManager;
 		Cache cache = cacheManager.getCache(name);
 		return ResponseEntity.status(200).body(cache);
 	}
+
+
+********************************************
+
+package com.unimoni.annotation;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import org.springframework.cache.annotation.Cacheable;
+
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Cacheable(value="users", key="#p0+'-'+#p1")
+public @interface CacheUserData {
+
+}
+
