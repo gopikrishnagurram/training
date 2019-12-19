@@ -1,0 +1,234 @@
+@Entity
+public class Episode {
+
+	@Id
+	@GeneratedValue(strategy=GenerationType.SEQUENCE)
+	private int id;
+	
+	private int seaonNumber;
+	
+	private Date releasedDate;
+	
+	private String description;
+	
+	private String url;
+	
+	@ManyToOne(fetch= FetchType.EAGER)
+	@JoinColumn(name="series_id", nullable=false, updatable=false)
+	private WebSeries webSeries;
+	
+	public Episode(int id, int seaonNumber, Date releasedDate, String description, String url, WebSeries webSeries) {
+		super();
+		this.id = id;
+		this.seaonNumber = seaonNumber;
+		this.releasedDate = releasedDate;
+		this.description = description;
+		this.url = url;
+		this.webSeries = webSeries;
+	}
+	
+	
+
+	public Episode(int seaonNumber, Date releasedDate, String description, String url) {
+		super();
+		this.seaonNumber = seaonNumber;
+		this.releasedDate = releasedDate;
+		this.description = description;
+		this.url = url;
+	}
+
+
+
+	public Episode(int id, int seaonNumber, Date releasedDate, String description, String url) {
+		super();
+		this.id = id;
+		this.seaonNumber = seaonNumber;
+		this.releasedDate = releasedDate;
+		this.description = description;
+		this.url = url;
+	}
+	
+
+	
+	public Episode() {
+		// TODO Auto-generated constructor stub
+	}
+
+	
+
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public int getSeaonNumber() {
+		return seaonNumber;
+	}
+
+	public void setSeaonNumber(int seaonNumber) {
+		this.seaonNumber = seaonNumber;
+	}
+
+	public Date getReleasedDate() {
+		return releasedDate;
+	}
+
+	public void setReleasedDate(Date releasedDate) {
+		this.releasedDate = releasedDate;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+
+
+	public WebSeries getWebSeries() {
+		return webSeries;
+	}
+
+
+
+	public void setWebSeries(WebSeries webSeries) {
+		this.webSeries = webSeries;
+	}
+
+}
+
+******************************************************************************
+
+@Entity
+public class WebSeries {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int id;
+
+	private String name;
+
+	private String director;
+
+	private Date releaseDate;
+
+	private String platform;
+
+	private int numberOfSeasons;
+	
+
+	@OneToMany(mappedBy="webSeries")
+	private List<Episode> episodes;
+	
+	
+	public WebSeries() {
+
+	}
+
+	
+
+	public WebSeries(int id, String name, String director, Date releaseDate, String platform, int numberOfSeasons) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.director = director;
+		this.releaseDate = releaseDate;
+		this.platform = platform;
+		this.numberOfSeasons = numberOfSeasons;
+	}
+
+	public WebSeries(String name, String director, Date releaseDate, String platform, int numberOfSeasons) {
+		super();
+		this.name = name;
+		this.director = director;
+		this.releaseDate = releaseDate;
+		this.platform = platform;
+		this.numberOfSeasons = numberOfSeasons;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getDirector() {
+		return director;
+	}
+
+	public void setDirector(String director) {
+		this.director = director;
+	}
+
+	public Date getReleaseDate() {
+		return releaseDate;
+	}
+
+	public void setReleaseDate(Date releaseDate) {
+		this.releaseDate = releaseDate;
+	}
+
+	public String getPlatform() {
+		return platform;
+	}
+
+	public void setPlatform(String platform) {
+		this.platform = platform;
+	}
+
+	public int getNumberOfSeasons() {
+		return numberOfSeasons;
+	}
+
+	public void setNumberOfSeasons(int numberOfSeasons) {
+		this.numberOfSeasons = numberOfSeasons;
+	}
+	
+}
+
+******************************************************************************
+
+package com.unimoni.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.unimoni.entity.Episode;
+
+public interface EpisodeRepository extends JpaRepository<Episode, Integer> {
+
+}
+******************************************************************************
+
+package com.unimoni.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.unimoni.entity.WebSeries;
+
+public interface WebSeriesRepository extends JpaRepository<WebSeries, Integer> {
+
+}
