@@ -1,0 +1,320 @@
+package com.unimoni.service;
+
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.Optional;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.unimoni.model.Employee;
+import com.unimoni.repository.EmployeeRepository;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+public class EmployeeServiceTest {
+
+	@Mock
+	EmployeeRepository repository;
+
+	@InjectMocks
+	EmployeeService empService;
+
+	@Test
+	public void testGetEmployee1() {
+		Employee emp = new Employee(1, "ds", 21, new Date(), "EE", "ds", 1, 2000);
+		Mockito.when(repository.findById(1)).thenReturn(Optional.of(emp));
+		Employee newEmp = empService.getEmployee(1);
+		Assert.assertTrue(emp.getAge() == newEmp.getAge());
+	}
+
+	@Test
+	public void testGetEmployee2() {
+		// Employee emp = new Employee(1, "ds", 21, new Date(), "EE", "ds", 1, 2000);
+		Mockito.when(repository.findById(1)).thenReturn(Optional.empty());
+		Employee newEmp = empService.getEmployee(2);
+		Assert.assertTrue(newEmp == null);
+	}
+
+	@Test
+	public void testDeleteEmployee() {
+		doNothing().when(repository).deleteById(1);
+		empService.deleteEmployee(1);
+		verify(repository, times(1)).deleteById(1);
+	}
+
+}
+
+
+
+
+*****************************************************************************************************
+
+package com.unimoni.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+
+import com.unimoni.model.Employee;
+import com.unimoni.repository.EmployeeRepository;
+
+@Service
+public class EmployeeService {
+
+	@Autowired
+	private EmployeeRepository empRepository;
+
+	public Employee createEmployee(Employee emp) {
+		Employee e = empRepository.save(emp);
+		return e;
+	}
+
+	public Employee getEmployee(Integer id) {
+		Optional<Employee> emp = empRepository.findById(id);
+		if (emp.isPresent()) {
+			return emp.get();
+		}
+		return null;
+	}
+
+	public Employee updateEmployee(Integer id, Employee e) {
+		e.setId(id);
+		Employee ne = empRepository.saveAndFlush(e);
+		try {
+			Thread.sleep(2 * 1000);
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
+		System.out.println("stopping-1");
+		return ne;
+	}
+
+	public Employee updateEmployee2(Integer id, Employee e) {
+		// printTransactionInfo();
+		e.setId(id);
+		Employee ne = empRepository.save(e);
+		System.out.println("stopping-2");
+		return ne;
+	}
+
+	public Employee recovery(Integer id, Employee e) {
+		System.out.println("In recovery");
+		return null;
+	}
+
+	public void deleteEmployee(Integer id) {
+
+		empRepository.deleteById(id);
+	}
+
+	public List<Employee> findByAge(int age) {
+
+		return empRepository.findByAge(age);
+	}
+
+	public List<Employee> findByPagination(int pageNumber, int numberOfRecords) {
+		Pageable page = PageRequest.of(pageNumber, numberOfRecords);
+		Page<Employee> pageData = empRepository.findAll(page);
+		return pageData.getContent();
+	}
+
+	private void printTransactionInfo() {
+		System.out.println(TransactionAspectSupport.currentTransactionStatus().hashCode());
+		if (TransactionAspectSupport.currentTransactionStatus().isNewTransaction()) {
+			System.out.println("new transaction");
+		} else {
+			System.out.println("old transaction");
+			
+		}
+	}
+
+	public float getElgibleLoanForEmployee(int empId) {
+		Employee emp = empRepository.findById(empId).get();
+		float amt = CalculatorService.elgibleLoan(emp);
+		return amt;
+	}
+
+}
+*****************************************************************************************************
+
+package com.unimoni.model;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Version;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.PastOrPresent;
+import javax.validation.constraints.Size;
+
+import org.springframework.lang.NonNull;
+
+@Entity
+public class Employee {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private int id;
+
+	@NonNull
+	@Size(min = 4)
+	@Column(name = "NAME")
+	private String name;
+
+	@Min(value = 18, message = "Age should be 18 years")
+	@Max(value = 60, message = "Age shouldn't exceed 60 years")
+	@Column
+	private int age;
+
+	@PastOrPresent
+	@Column
+	private Date joiningDate;
+
+	@Column
+	private String department;
+
+	@Column
+	private String email;
+
+	@Column
+	private float salary;
+
+	@Version
+	private int version;
+
+	public Employee() {
+
+	}
+
+	public Employee(int id, @Size(min = 4) String name,
+			@Min(value = 18, message = "Age should be 18 years") @Max(value = 60, message = "Age shouldn't exceed 60 years") int age,
+			@PastOrPresent Date joiningDate, String department, String email, int version, float salary) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.age = age;
+		this.joiningDate = joiningDate;
+		this.department = department;
+		this.email = email;
+		this.version = version;
+		this.salary = salary;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getDepartment() {
+		return department;
+	}
+
+	public void setDepartment(String department) {
+		this.department = department;
+	}
+
+	public int getAge() {
+		return age;
+	}
+
+	public void setAge(int age) {
+		this.age = age;
+	}
+
+	public Date getJoiningDate() {
+		return joiningDate;
+	}
+
+	public void setJoiningDate(Date joiningDate) {
+		this.joiningDate = joiningDate;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public int getVersion() {
+		return version;
+	}
+
+	public void setVersion(int version) {
+		this.version = version;
+	}
+
+	public float getSalary() {
+		return salary;
+	}
+
+	public void setSalary(float salary) {
+		this.salary = salary;
+	}
+
+}
+*****************************************************************************************************
+
+package com.unimoni.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.unimoni.model.Employee;
+
+public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
+
+	public List<Employee> findByName(String name);
+
+	//public List<Employee> findByNameAndDepartmentAndAge(String name, String department);
+
+	public List<Employee> findByNameOrDepartment(String name, String department);
+
+	public List<Employee> findByAgeLessThan(int age);
+	
+	public List<Employee> findByAge(int age);
+
+	public List<Employee> findByAgeLessThanEqual(int age);
+	
+	@Query(value="select e from Employee e where age=?1")
+	public List<Employee> findBasedOnAge(int age);
+	
+	
+
+}
