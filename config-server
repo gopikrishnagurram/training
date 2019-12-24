@@ -213,5 +213,16 @@ pom.xml
 	</build>
 
 </project>
+*************************************************
+config server 
 
+GET http://localhost:8888/{app-name}/{environment} 
+POST http://localhost:8888/encrypt 
+
+
+config client: 
+
+To realod the context 
+
+POST http://localhost:8080/actuator/refresh
 
