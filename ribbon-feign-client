@@ -1,0 +1,89 @@
+<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-feign</artifactId>
+			<version>1.4.7.RELEASE</version>
+		</dependency>  
+		
+
+
+@FeignClient(name="otp")
+public interface OtpProxy {
+
+	@GetMapping("/otp")
+	public ResponseEntity<String> getOtp();
+	
+	@GetMapping("/otp/{id}")
+	public ResponseEntity<String> getOtp2(@PathVariable("id") String id);
+	
+	
+}
+
+@EnableFeignClients
+public class EurekaClientCustomerApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(EurekaClientCustomerApplication.class, args);
+	}
+	
+	
+	@Bean
+	@LoadBalanced
+	public RestTemplate restTempate() {
+		return new RestTemplate();
+	}
+
+}
+
+@RestController
+public class SampleController {
+
+	@Autowired
+	RestTemplate restTemplate;
+	
+	@Autowired
+	EurekaClient eurekaClient;
+	
+	@Autowired
+	OtpProxy otpProxy;
+	
+	@GetMapping("/custoemr")
+	public ResponseEntity get() {
+		ResponseEntity<String> response = otpProxy.getOtp();
+		return ResponseEntity.status(200).body(response.getBody());
+	}
+	
+	
+}
+
+
+******************
+Ribbon sample: 
+******************
+
+public class OtpLoadBalancingConfiguration {
+ 
+    @Autowired
+    IClientConfig config;
+ 
+    @Bean
+    public IPing ribbonPing(IClientConfig config) {
+        return new PingUrl();
+    }
+ 
+    @Bean
+    public IRule ribbonRule(IClientConfig config) {
+        return new AvailabilityFilteringRule();
+    }
+}
+
+
+@RibbonClients(value= {
+		@RibbonClient(configuration=OtpLoadBalancingConfiguration.class, name="otp")
+})
+
+
+
+
+
+
+
