@@ -1,0 +1,88 @@
+Eureka server:
+**************
+
+<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+</dependency>
+
+@SpringBootApplication
+@EnableEurekaServer
+public class EurekaServerApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(EurekaServerApplication.class, args);
+	}
+
+}
+
+application.properties:
+*************************
+eureka.client.register-with-eureka=false
+eureka.client.fetch-registry=false
+server.port=8761
+
+
+****************************************************
+
+client-otp: 
+
+@RestController
+public class OtpController {
+
+	@Value("${server.port}")
+	private String port;
+
+	@GetMapping("/otp")
+	public ResponseEntity getOtp() {
+		return ResponseEntity.status(200).body("otp : 1234, port:" + port+", version 2 new code added");
+	}
+
+}
+
+	<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+	</dependency>
+
+application.properties
+
+server.port=8082
+spring.application.name=otp
+eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka/
+
+****************************************************
+
+client-customer:
+
+<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+		</dependency>
+
+
+@RestController
+public class SampleController {
+
+	@Autowired
+	RestTemplate restTemplate;
+	
+	@Autowired
+	EurekaClient eurekaClient;
+	
+	@GetMapping("/custoemr")
+	public ResponseEntity get() {
+		Application otpApp = eurekaClient.getApplication("OTP");
+		List<InstanceInfo> instances = otpApp.getInstances();
+		InstanceInfo info = instances.get(0);
+		String url = info.getHostName()+":"+info.getPort()+"/otp";
+		ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+		return ResponseEntity.status(200).body(response.getBody());
+	}
+	
+	
+}
+
+spring.application.name=customer
+server.port=8081
+eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka/
