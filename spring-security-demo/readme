@@ -1,0 +1,22 @@
+curl -X POST \
+  http://localhost:8080/oauth/token \
+  -H 'Authorization: Basic cmVhZGVyOnNlY3JldA==' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -H 'Postman-Token: 503fd62b-ee31-468c-8ac7-7e9bda26c404' \
+  -H 'cache-control: no-cache' \
+  -d 'username=test%40test.com&password=tester&grant_type=password&client_id=reader&client_secret=secret&undefined='
+
+
+
+curl -X GET \
+  http://localhost:8080/api/hello \
+  -H 'Authorization: Bearer afa1876c-26cf-4c90-a0ce-f876d5e7a7bf' \
+  -H 'Postman-Token: 1a5d15ac-c343-4d01-a2d9-47f1699fdd92' \
+  -H 'cache-control: no-cache'
+
+
+
+curl -X GET \
+  http://localhost:8181/services/test \
+  -H 'Postman-Token: e9785259-ebf2-4825-a09f-f3cad0044702' \
+  -H 'cache-control: no-cache'
