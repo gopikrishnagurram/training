@@ -1,0 +1,27 @@
+version: '2.1'
+
+services:
+  person:
+    build: 
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 9191:9191
+    environment:
+      - DB_HOST=unimoni_mysql
+    depends_on:
+      - db  
+    restart: always
+  db:
+    image: mysql:latest
+    container_name: unimoni_mysql
+    ports:
+      - 3306:3306 
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456  
+      - MYSQL_DATABASE=test
+    volumes:
+      - unimoni:/var/lib/mysql
+      
+volumes: 
+  unimoni:
