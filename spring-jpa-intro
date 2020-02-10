@@ -135,3 +135,8 @@ public List<Employee> findByName(String name);
 
 @Procedure(procedureName = "MOVE_TO_HISTORY")
   boolean movePersonToHistory(@Param("person_id_in") int personId);
+
+
+@Modifying(clearAutomatically = true)
+@Query("update RssFeedEntry feedEntry set feedEntry.read =:isRead where feedEntry.id =:entryId")
+void markEntryAsRead(@Param("entryId") Long rssFeedEntryId, @Param("isRead") boolean isRead);
