@@ -1,0 +1,9 @@
+ kafka:
+    image: spotify/kafka
+    ports:
+      - 2181:2181
+      - 9092:9092
+      - 49992:49992
+    environment:
+      ADVERTISED_HOST: kafka
+      ADVERTISED_PORT: 9092
